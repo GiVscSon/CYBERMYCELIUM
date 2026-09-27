@@ -6,17 +6,19 @@
   const visionButton=document.querySelector('#vision');
   const W=1600,H=900,assets={};
   const saved=(() => {try{return JSON.parse(localStorage.getItem('cybermycelium-adventure-v1')||'{}')}catch{return {}}})();
-  const progress={memory:!!saved.memory,relay:!!saved.relay,specimen:!!saved.specimen,signal:!!saved.signal,node:!!saved.node};
+  const progress={memory:!!saved.memory,relay:!!saved.relay,specimen:!!saved.specimen,signal:!!saved.signal,node:!!saved.node,register:!!saved.register,witness:!!saved.witness,ending:saved.ending==='listen'||saved.ending==='seal'?saved.ending:null};
   let scene=saved.scene==='memory'?'memory':'atrium',vision=false,hover=null,pending=null,last=0,elapsed=0,noticeUntil=0;
   const hero={x:scene==='memory'?1440:730,y:scene==='memory'?720:770,to:null,facing:1,walking:false};
   const hotspots={
     atrium:[
       {id:'archive',name:'Архив эха',box:[90,370,430,640],go:[360,685]},
+      {id:'register',name:'Реестр основания',box:[475,340,715,570],go:[615,675]},
       {id:'terminal',name:'Сигнальный терминал',box:[1080,510,1370,690],go:[1135,695]},
       {id:'gate',name:'Проход к камере памяти',box:[1430,310,1595,685],go:[1460,700]}
     ],
     memory:[
       {id:'specimen',name:'Споровый архив',box:[65,205,450,590],go:[390,675]},
+      {id:'witness',name:'След свидетеля',box:[475,280,630,540],go:[595,675]},
       {id:'core',name:'Сердце памяти',box:[635,160,1080,575],go:[850,665]},
       {id:'console',name:'Пульт маршрута',box:[1140,390,1435,640],go:[1190,680]},
       {id:'back',name:'Вернуться в атриум',box:[1440,270,1590,615],go:[1465,690]}
@@ -24,23 +26,35 @@
   };
   function save(){try{localStorage.setItem('cybermycelium-adventure-v1',JSON.stringify({...progress,scene}))}catch{}}
   function message(t,seconds=4){prompt.textContent=t;noticeUntil=elapsed+seconds}
-  function goal(){place.textContent=scene==='atrium'?'НУЛЕВОЙ УЗЕЛ / АТРИУМ':'НУЛЕВОЙ УЗЕЛ / КАМЕРА ПАМЯТИ';objective.textContent=progress.node?'Узел отвечает. Сигнал пришёл извне.':!progress.memory?'Найдите обрывок памяти в архиве.':!progress.relay?'Восстановите маршрут в терминале.':scene==='atrium'?'Пройдите в камеру памяти.':!progress.specimen?'Изучите споровый архив.':!progress.signal?'Настройте пульт маршрута.':'Пробудите сердце памяти.'}
+  function goal(){place.textContent=scene==='atrium'?'НУЛЕВОЙ УЗЕЛ / АТРИУМ':'НУЛЕВОЙ УЗЕЛ / КАМЕРА ПАМЯТИ';objective.textContent=progress.ending==='listen'?'Вы приняли ответ. Источник ждёт за пределами узла.':progress.ending==='seal'?'Вы изолировали ответ. Его след остался в памяти.':progress.node?'Сигнал пришёл извне. Решите, что делать с ним.':!progress.memory?'Найдите обрывок памяти в архиве.':!progress.relay?'Восстановите маршрут в терминале.':scene==='atrium'?'Пройдите в камеру памяти.':!progress.specimen?'Изучите споровый архив.':!progress.signal?'Настройте пульт маршрута.':'Пробудите сердце памяти.'}
   function dialog(kind,heading,text,buttons=[]){pending=null;tag.textContent=kind;title.textContent=heading;body.textContent=text;choices.replaceChildren();for(const b of buttons){let el=document.createElement('button');el.type='button';el.textContent=b.label;el.addEventListener('click',b.action);choices.append(el)}modal.classList.add('show');document.querySelector('#close').focus()}
   function close(){modal.classList.remove('show');goal()}
   document.querySelector('#close').addEventListener('click',close);
-  document.querySelector('#journal').addEventListener('click',()=>dialog('ПОЛЕВОЙ ЖУРНАЛ','Нулевой узел',`Память: ${progress.memory?'найдена':'не найдена'}. Маршрут: ${progress.relay?'восстановлен':'нарушен'}. Споровый образец: ${progress.specimen?'считан':'не считан'}. Пульт: ${progress.signal?'настроен':'молчит'}. Узел: ${progress.node?'пробуждён':'спит'}.`));
+  const lore={
+    origin:{title:'Основание',text:'Создатели выращивали вычислительную сеть в минеральных шахтах. Грибница удерживала данные не в одном центре: каждая ветвь могла помнить часть целого. Её называли PRIMUS MYCELIUM.'},
+    rupture:{title:'Разрыв',text:'Однажды сеть получила ответ из области без известного адреса. Узлы начали сохранять несовместимые версии одного события. Создатели разорвали магистрали и запечатали память, чтобы остановить распространение ответа.'},
+    echo:{title:'Фрагмент 01',text:'Последняя запись дежурного: «Сначала живая ткань, затем медь, затем память». Это порядок восстановления маршрута. В записи нет имени автора.'},
+    witness:{title:'Свидетель',text:'След в камере не принадлежит создателям. Он оставлен уже после изоляции узла. Голос помнит Проводника и утверждает, что Разрыв был выбором, а не аварией.'},
+    spore:{title:'Споровая память',text:'Споры переносят слабый отпечаток сигнала между отключёнными ветвями. Образец можно считать, не пробуждая соседние узлы.'},
+    answer:{title:'Внешний ответ',text:'Источник не совпадает ни с одним адресом PRIMUS. Он ответил сразу после восстановления узла. Его природа и намерения неизвестны.'}
+  };
+  const known=()=>[['origin',progress.register],['rupture',progress.relay],['echo',progress.memory],['witness',progress.witness],['spore',progress.specimen],['answer',progress.node]].filter(([,yes])=>yes).map(([id])=>id);
+  function journal(){const ids=known();dialog('ПОЛЕВОЙ ЖУРНАЛ','Записи Проводника',`Найдено ${ids.length} из 6 записей. ${progress.ending?'Решение сохранено: '+(progress.ending==='listen'?'принять ответ.':'изолировать канал.'):''} Выберите запись, чтобы прочитать её.`,ids.map(id=>({label:lore[id].title,action:()=>dialog('ЗАПИСЬ / '+lore[id].title,lore[id].title,lore[id].text,[{label:'К СПИСКУ',action:journal}])})))}
+  document.querySelector('#journal').addEventListener('click',journal);
   visionButton.addEventListener('click',()=>{vision=!vision;visionButton.classList.toggle('active',vision);message(vision?'Связи проявились. Осмотрите отмеченные участки.':'Зрение сети отключено.',3)});
   window.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('show'))close();if(e.key.toLowerCase()==='v'&&!e.repeat&&!modal.classList.contains('show'))visionButton.click()});
   function nextScene(name){scene=name;hero.x=name==='memory'?1430:1460;hero.y=720;hero.to=null;hover=null;save();goal();message(name==='memory'?'Сеть хранит больше, чем показывает.':'Вы вернулись в атриум.',4)}
   const relayOrder=['ТКАНЬ','МЕДЬ','ПАМЯТЬ'];let relayStep=0;
-  function puzzle(){relayStep=0;function show(){dialog('СИГНАЛЬНЫЙ ТЕРМИНАЛ','Восстановление маршрута',`Выберите порядок импульсов. Подсказка архива: «Сначала живая ткань, затем проводник, затем память». Подключено: ${relayStep} из 3.`,relayOrder.map((label,index)=>({label,action:()=>{if(index===relayStep){relayStep++;if(relayStep===3){progress.relay=true;save();dialog('МАРШРУТ ВОССТАНОВЛЕН','Связь открыта','Мицелий принял последовательность. Дверь к камере памяти отвечает на сигнал.');goal()}else show()}else{relayStep=0;show();message('Последовательность сброшена.',3)}}})))}show()}
+  function puzzle(){relayStep=0;function show(){dialog('СИГНАЛЬНЫЙ ТЕРМИНАЛ','Восстановление маршрута',`Выберите порядок импульсов из архивной записи. Подключено: ${relayStep} из 3.`,relayOrder.map((label,index)=>({label,action:()=>{if(index===relayStep){relayStep++;if(relayStep===3){progress.relay=true;save();dialog('МАРШРУТ ВОССТАНОВЛЕН','Связь открыта','Мицелий принял последовательность. Под покрытием терминала обнаружен протокол Разрыва — новая запись в журнале. Дверь к камере памяти открыта.');goal()}else show()}else{relayStep=0;show();message('Последовательность сброшена.',3)}}})))}show()}
   function interact(id){
-    if(id==='archive'){progress.memory=true;save();dialog('ЭХО ПАМЯТИ','Фрагмент 01','Три импульса пережили разрыв: сначала живая ткань, затем медь, затем память. Порядок записан в ваш журнал.');message('Фрагмент памяти получен. Подойдите к терминалу.',5)}
+    if(id==='archive'){progress.memory=true;save();dialog('ЭХО ПАМЯТИ','Фрагмент 01',lore.echo.text+' Запись добавлена в журнал.');message('Фрагмент памяти получен. Подойдите к терминалу.',5)}
+    if(id==='register'){progress.register=true;save();dialog('РЕЕСТР ОСНОВАНИЯ','PRIMUS MYCELIUM',lore.origin.text+' Запись добавлена в журнал.');}
     if(id==='terminal'){progress.memory?puzzle():dialog('СИГНАЛЬНЫЙ ТЕРМИНАЛ','Маршрут закрыт','Терминал ждёт утраченный порядок импульсов. След остался в архивном зале слева.')}
     if(id==='gate'){progress.relay?nextScene('memory'):dialog('СИГНАЛЬНЫЙ ШЛЮЗ','Нет маршрута','Дверь не узнаёт ваш сигнал. Восстановите маршрут в терминале.')}
+    if(id==='witness'){progress.witness=true;save();dialog('ОСТАТОЧНЫЙ ГОЛОС','Свидетель','«Ты уже был здесь, Проводник. Они назвали это аварией, потому что боялись назвать выбором». Голос обрывается. Его след сохранён в журнале.');}
     if(id==='specimen'){progress.specimen=true;save();dialog('СПОРОВЫЙ АРХИВ','Живой образец','Споры удерживают отпечаток сигнала. Теперь пульт может сопоставить его с разорванной ветвью.');message('Образец считан. Осмотрите пульт справа.',5)}
     if(id==='console'){if(!progress.specimen){dialog('ПУЛЬТ МАРШРУТА','Нужен образец','В архиве слева хранится споровый отпечаток этого узла.');return}progress.signal=true;save();dialog('ПУЛЬТ МАРШРУТА','Канал открыт','Проводящие волокна нашли ответ. Подключитесь к сердцу памяти.');message('Канал открыт. Подойдите к центральному стволу.',5)}
-    if(id==='core'){if(!progress.signal){dialog('СЕРДЦЕ ПАМЯТИ','Узел спит','Сначала считайте споровый образец и направьте его через пульт.');return}progress.node=true;save();dialog('УЗЕЛ 01 ВОССТАНОВЛЕН','Внешний ответ','Весь зал оживает. В ответ приходит сигнал из области, которую сеть не помнит. Кто-то или что-то наблюдало за восстановлением.');message('УЗЕЛ 01 ВОССТАНОВЛЕН // ОБНАРУЖЕН ВНЕШНИЙ ОТВЕТ',8)}
+    if(id==='core'){if(!progress.signal){dialog('СЕРДЦЕ ПАМЯТИ','Узел спит','Сначала считайте споровый образец и направьте его через пульт.');return}progress.node=true;save();const choose=(ending)=>{progress.ending=ending;save();goal();dialog('ГЛАВА I / ИСХОД',ending==='listen'?'Ответ принят':'Канал изолирован',ending==='listen'?'Вы открыли канал. Чужой сигнал произносит имя, которого вы не помните. Его источник остаётся за пределами узла.':'Вы закрыли канал. Перед затуханием сигнал оставил координаты неизвестной ветви в памяти узла.');};if(progress.ending){dialog('СЕРДЦЕ ПАМЯТИ','Решение сохранено',progress.ending==='listen'?'Канал открыт. Ответ ждёт за пределами узла.':'Канал изолирован. След ответа сохранён.')}else dialog('УЗЕЛ 01 ВОССТАНОВЛЕН','Внешний ответ','Весь зал оживает. Незарегистрированный сигнал отвечает из области, которую сеть не помнит. Принять контакт или изолировать канал?',[{label:'СЛУШАТЬ ОТВЕТ',action:()=>choose('listen')},{label:'ИЗОЛИРОВАТЬ',action:()=>choose('seal')}]);message('УЗЕЛ 01 ВОССТАНОВЛЕН // ОБНАРУЖЕН ВНЕШНИЙ ОТВЕТ',8)}
     if(id==='back')nextScene('atrium');goal()
   }
   function point(e){let r=canvas.getBoundingClientRect();return {x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height}}

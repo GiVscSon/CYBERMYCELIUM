@@ -21,13 +21,17 @@ const close=()=>nodes.close.click();
 (async()=>{
  await tick();assert.equal(nodes['modal-title'].textContent,'Нулевой узел');close();
  await walk(225,500);assert.equal(nodes['modal-title'].textContent,'Фрагмент 01');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).memory,true);close();
+ await walk(550,450);assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).register,true);close();
  await walk(1200,600);assert.equal(nodes['modal-title'].textContent,'Восстановление маршрута');
  for(const label of ['ТКАНЬ','МЕДЬ','ПАМЯТЬ']){const button=nodes['modal-choices'].children.find(x=>x.textContent===label);button.click()}
  assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).relay,true);close();
  await walk(1500,500);assert.match(nodes.place.textContent,/КАМЕРА ПАМЯТИ/);
+ await walk(550,450);assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).witness,true);close();
  await walk(250,400);assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).specimen,true);close();
  await walk(1200,480);assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).signal,true);close();
- await walk(800,400);assert.equal(nodes['modal-title'].textContent,'Внешний ответ');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).node,true);close();
+ await walk(800,400);assert.equal(nodes['modal-title'].textContent,'Внешний ответ');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).node,true);
+ nodes['modal-choices'].children.find(x=>x.textContent==='СЛУШАТЬ ОТВЕТ').click();assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).ending,'listen');close();
+ nodes.journal.click();assert.match(nodes['modal-body'].textContent,/Найдено 6 из 6/);nodes['modal-choices'].children.find(x=>x.textContent==='Разрыв').click();assert.match(nodes['modal-body'].textContent,/несовместимые версии/);close();
  nodes.vision.click();assert(nodes.vision.classList.contains('active'));
- console.log('PASS: assets, DOM, movement, puzzle, both scenes, completion, save and network vision');
+ console.log('PASS: assets, DOM, movement, puzzle, lore, both scenes, ending, journal, save and network vision');
 })().catch(e=>{console.error(e);process.exitCode=1});
