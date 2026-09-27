@@ -5,21 +5,25 @@ const vm = require('node:vm');
 const root = path.join(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const js = fs.readFileSync(path.join(root, 'game.js'), 'utf8');
-for (const id of ['scene','loading','place','objective','prompt','modal','modal-tag','modal-title','modal-body','modal-choices','vision','journal','close']) assert.match(html, new RegExp(`id="${id}"`));
+for (const id of ['scene','loading','place','objective','prompt','modal','modal-tag','modal-title','modal-body','modal-choices','vision','journal','close','menu','menu-button','continue','settings-button','new-game','move-speed','text-size','always-hotspots','reduced-motion']) assert.match(html, new RegExp(`id="${id}"`));
 for (const file of ['atrium.webp','memory.webp']) {const data=fs.readFileSync(path.join(root,'assets',file));assert.equal(data.toString('ascii',0,4),'RIFF');assert.equal(data.toString('ascii',8,12),'WEBP')}
 class Element {constructor(){this.textContent='';this.handlers={};this.children=[];this.style={};this.classList={set:new Set(),add(x){this.set.add(x)},remove(x){this.set.delete(x)},contains(x){return this.set.has(x)},toggle(x,v){if(v===undefined)v=!this.set.has(x);v?this.set.add(x):this.set.delete(x)}}}addEventListener(n,fn){this.handlers[n]=fn}click(){this.handlers.click?.({})}focus(){}replaceChildren(){this.children=[]}append(x){this.children.push(x)}getBoundingClientRect(){return {left:0,top:0,width:1600,height:900}}}
 const nodes=Object.fromEntries([...html.matchAll(/id="([^"]+)"/g)].map(m=>[m[1],new Element()]));
 const noop=()=>{};const ctx=new Proxy({}, {get(target,key){if(key==='measureText')return s=>({width:s.length*10});return target[key]||noop},set(target,key,val){target[key]=val;return true}});
 nodes.scene.getContext=()=>ctx;
 let raf=null, clock=0;const store={};
-const sandbox={document:{querySelector:s=>nodes[s.slice(1)],createElement:()=>new Element()},window:{addEventListener:noop},localStorage:{getItem:k=>store[k],setItem:(k,v)=>store[k]=v},Image:class{set src(v){this.complete=true;this.naturalWidth=1600;this.onload?.()}},requestAnimationFrame:f=>{raf=f},Math,Promise,console};
+const windowHandlers={};const sandbox={document:{body:new Element(),querySelector:s=>nodes[s.slice(1)],createElement:()=>new Element()},window:{addEventListener:(n,fn)=>{windowHandlers[n]=fn}},localStorage:{getItem:k=>store[k],setItem:(k,v)=>store[k]=v},Image:class{set src(v){this.complete=true;this.naturalWidth=1600;this.onload?.()}},requestAnimationFrame:f=>{raf=f},Math,Promise,console};
 vm.runInNewContext(js,sandbox,{filename:'game.js'});
 const tick=async(n=1)=>{await Promise.resolve();for(let i=0;i<n;i++){clock+=40;raf?.(clock)}};
 const at=(x,y)=>nodes.scene.handlers.pointerdown({clientX:x,clientY:y});
 const walk=async(x,y)=>{at(x,y);await tick(230)};
 const close=()=>nodes.close.click();
 (async()=>{
- await tick();assert.equal(nodes['modal-title'].textContent,'Нулевой узел');close();
+ await tick();assert(nodes.menu.classList.contains('show'));
+ nodes['settings-button'].click();nodes['move-speed'].value='fast';nodes['move-speed'].handlers.change({target:nodes['move-speed']});nodes['text-size'].value='large';nodes['text-size'].handlers.change({target:nodes['text-size']});nodes['always-hotspots'].checked=true;nodes['always-hotspots'].handlers.change({target:nodes['always-hotspots']});assert.equal(JSON.parse(store['cybermycelium-settings-v1']).speed,'fast');assert(sandbox.document.body.classList.contains('large-text'));
+ nodes['settings-back'].click();nodes.continue.click();assert.equal(nodes['modal-title'].textContent,'Нулевой узел');close();
+ nodes['menu-button'].click();assert(nodes.menu.classList.contains('show'));windowHandlers.keydown({key:'Escape',preventDefault(){}});assert(!nodes.menu.classList.contains('show'));
+ windowHandlers.keydown({key:'a',preventDefault(){}});await tick(10);windowHandlers.keyup({key:'a'});assert(!nodes.modal.classList.contains('show'));
  await walk(225,500);assert.equal(nodes['modal-title'].textContent,'Фрагмент 01');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).memory,true);close();
  await walk(550,450);assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).register,true);close();
  await walk(1200,600);assert.equal(nodes['modal-title'].textContent,'Восстановление маршрута');
@@ -33,5 +37,6 @@ const close=()=>nodes.close.click();
  nodes['modal-choices'].children.find(x=>x.textContent==='СЛУШАТЬ ОТВЕТ').click();assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).ending,'listen');close();
  nodes.journal.click();assert.match(nodes['modal-body'].textContent,/Найдено 6 из 6/);nodes['modal-choices'].children.find(x=>x.textContent==='Разрыв').click();assert.match(nodes['modal-body'].textContent,/несовместимые версии/);close();
  nodes.vision.click();assert(nodes.vision.classList.contains('active'));
- console.log('PASS: assets, DOM, movement, puzzle, lore, both scenes, ending, journal, save and network vision');
+ nodes['menu-button'].click();nodes['new-game'].click();assert.equal(nodes['modal-title'].textContent,'Начать заново?');nodes['modal-choices'].children.find(x=>x.textContent==='СБРОСИТЬ ПРОХОЖДЕНИЕ').click();assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).memory,false);assert.equal(JSON.parse(store['cybermycelium-settings-v1']).speed,'fast');
+ console.log('PASS: menu, settings, keyboard, assets, puzzle, lore, ending, journal and reset');
 })().catch(e=>{console.error(e);process.exitCode=1});
