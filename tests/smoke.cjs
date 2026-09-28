@@ -14,7 +14,7 @@ nodes.scene.getContext=()=>ctx;
 nodes.detail.getContext=()=>ctx;
 let raf=null, clock=0;const store={};
 if(process.env.TEST_LEGACY)store['cybermycelium-adventure-v1']=JSON.stringify({scene:'seam',ending:'listen',chronicle:true,echo:true,seamCalibrated:true});
-const mapNodes=['ash','atrium','interface','memory','seam','carrier','center'].map(scene=>Object.assign(new Element(),{dataset:{scene}}));
+const mapNodes=['ash','atrium','interface','memory','seam','carrier','b0','b1','c0','c1','r','center'].map(scene=>Object.assign(new Element(),{dataset:{scene}}));
 const windowHandlers={};const sandbox={document:{body:new Element(),querySelector:s=>nodes[s.slice(1)],querySelectorAll:s=>s==='.map-node'?mapNodes:[],createElement:()=>new Element()},window:{addEventListener:(n,fn)=>{windowHandlers[n]=fn}},localStorage:{getItem:k=>store[k],setItem:(k,v)=>store[k]=v},Image:class{set src(v){this.complete=true;this.naturalWidth=1600;this.onload?.()}},requestAnimationFrame:f=>{raf=f},Math,Promise,console};
 vm.runInNewContext(js,sandbox,{filename:'game.js'});
 const tick=async(n=1)=>{await Promise.resolve();for(let i=0;i<n;i++){clock+=40;raf?.(clock)}};
@@ -33,6 +33,8 @@ const choose=label=>{const button=nodes['modal-choices'].children.find(x=>x.text
  await walk(1350,350);assert.equal(nodes['modal-title'].textContent,'Нить без направления');close();
  await walk(120,300);assert.equal(store['cybermycelium-adventure-v1'],undefined);choose('СЧИТАТЬ ЖУРНАЛ');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).ashSignal,true);close();
  await walk(820,380);choose('СЧИТАТЬ СПОРЫ');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).ashSpores,true);close();
+ await walk(120,300);assert.equal(nodes['modal-title'].textContent,'Мой ранний сигнал');assert.match(nodes['modal-body'].textContent,/Прислушайтесь к спорам/);close();
+ await walk(1350,350);assert.equal(nodes['modal-title'].textContent,'Нить без направления');close();
  await walk(820,380);assert.equal(nodes['modal-title'].textContent,'Контакт через споры');choose('ПРИСЛУШАТЬСЯ');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).sporeVoice,true);assert.match(nodes['modal-body'].textContent,/нервная система/);close();
  await walk(120,300);assert.equal(nodes['modal-title'].textContent,'Сопоставить следы');nodes['modal-choices'].children.find(x=>x.textContent==='СОПОСТАВИТЬ РИТМЫ').click();assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).ashCompared,true);close();
  await walk(1350,350);assert.match(nodes.place.textContent,/НУЛЕВОЙ УЗЕЛ/);
@@ -56,7 +58,7 @@ const choose=label=>{const button=nodes['modal-choices'].children.find(x=>x.text
  await walk(800,400);assert.equal(nodes['modal-title'].textContent,'Прямое сопряжение');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).node,false);choose('ПОДКЛЮЧИТЬ ПЕРЕХОДНИК');assert.equal(nodes['modal-title'].textContent,'Внешний ответ');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).node,true);
  const ending=process.env.TEST_ENDING==='seal'?'seal':'listen';nodes['modal-choices'].children.find(x=>x.textContent===(ending==='seal'?'ИЗОЛИРОВАТЬ':'СЛУШАТЬ ОТВЕТ')).click();assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).ending,ending);
  nodes['modal-choices'].children.find(x=>x.textContent==='ИДТИ К ШВУ РАЗРЫВА').click();assert.match(nodes.place.textContent,/ШОВ РАЗРЫВА/);
- nodes['map-button'].click();assert(mapNodes[4].classList.contains('current'));assert(mapNodes[5].classList.contains('locked'));assert(mapNodes[6].classList.contains('locked'));nodes['map-close'].click();
+ nodes['map-button'].click();assert(mapNodes[4].classList.contains('current'));assert(mapNodes[5].classList.contains('locked'));for(const node of mapNodes.slice(6))assert(node.classList.contains('locked'));nodes['map-close'].click();
  await walk(300,300);choose('СНЯТЬ ОТТИСК');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).chronicle,true);close();
  await walk(750,350);choose('ПРОСЛУШАТЬ СЛЕД');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).echo,true);close();
  await walk(1200,450);assert.equal(nodes['modal-title'].textContent,'Найдите противоречие');nodes['modal-choices'].children.find(x=>x.textContent==='ПОРЯДОК СОБЫТИЙ').click();assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).seamCalibrated,true);close();
