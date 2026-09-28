@@ -6,7 +6,7 @@ const root = path.join(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const js = fs.readFileSync(path.join(root, 'game.js'), 'utf8');
 for (const id of ['scene','loading','place','objective','prompt','modal','modal-tag','modal-title','modal-body','modal-choices','vision','journal','close','menu','menu-button','continue','settings-button','new-game','move-speed','text-size','always-hotspots','reduced-motion','world-map','map-button','map-close']) assert.match(html, new RegExp(`id="${id}"`));
-for (const file of ['outer.webp','vault.webp','fracture.webp','guide.webp']) {const data=fs.readFileSync(path.join(root,'assets',file));assert.equal(data.toString('ascii',0,4),'RIFF');assert.equal(data.toString('ascii',8,12),'WEBP')}
+for (const file of ['outer.webp','vault.webp','fracture.webp','mage.webp']) {const data=fs.readFileSync(path.join(root,'assets',file));assert.equal(data.toString('ascii',0,4),'RIFF');assert.equal(data.toString('ascii',8,12),'WEBP')}
 class Element {constructor(){this.textContent='';this.handlers={};this.children=[];this.style={};this.classList={set:new Set(),add(x){this.set.add(x)},remove(x){this.set.delete(x)},contains(x){return this.set.has(x)},toggle(x,v){if(v===undefined)v=!this.set.has(x);v?this.set.add(x):this.set.delete(x)}}}addEventListener(n,fn){this.handlers[n]=fn}click(){this.handlers.click?.({})}focus(){}replaceChildren(){this.children=[]}append(x){this.children.push(x)}getBoundingClientRect(){return {left:0,top:0,width:1600,height:900}}}
 const nodes=Object.fromEntries([...html.matchAll(/id="([^"]+)"/g)].map(m=>[m[1],new Element()]));
 const noop=()=>{};const ctx=new Proxy({}, {get(target,key){if(key==='measureText')return s=>({width:s.length*10});return target[key]||noop},set(target,key,val){target[key]=val;return true}});
@@ -43,8 +43,8 @@ const close=()=>nodes.close.click();
  await walk(750,350);assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).echo,true);close();
  await walk(1200,450);assert.equal(nodes['modal-title'].textContent,'Найдите противоречие');nodes['modal-choices'].children.find(x=>x.textContent==='ПОРЯДОК СОБЫТИЙ').click();assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).seamCalibrated,true);close();
  await walk(1500,400);assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).archSeen,true);close();
- nodes.journal.click();assert.match(nodes['modal-body'].textContent,/Найдено 9 из 9/);nodes['modal-choices'].children.find(x=>x.textContent==='Разрыв').click();assert.match(nodes['modal-body'].textContent,/несовместимые версии/);close();
+ nodes.journal.click();assert.match(nodes['modal-body'].textContent,/Найдено 10 из 10/);nodes['modal-choices'].children.find(x=>x.textContent==='Прибытие мага').click();assert.match(nodes['modal-body'].textContent,/другой планеты/);nodes['modal-choices'].children.find(x=>x.textContent==='К СПИСКУ').click();nodes['modal-choices'].children.find(x=>x.textContent==='Разрыв').click();assert.match(nodes['modal-body'].textContent,/несовместимые версии/);close();
  nodes.vision.click();assert(nodes.vision.classList.contains('active'));
  nodes['menu-button'].click();nodes['new-game'].click();assert.equal(nodes['modal-title'].textContent,'Начать заново?');nodes['modal-choices'].children.find(x=>x.textContent==='СБРОСИТЬ ПРОХОЖДЕНИЕ').click();assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).memory,false);assert.equal(JSON.parse(store['cybermycelium-settings-v1']).speed,'fast');
- console.log('PASS: dark assets, human sprite, world map, controls, three scenes, both puzzles, journal and reset');
+ console.log('PASS: dark assets, alien mage, world map, controls, three scenes, both puzzles, journal and reset');
 })().catch(e=>{console.error(e);process.exitCode=1});
