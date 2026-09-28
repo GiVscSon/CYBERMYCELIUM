@@ -15,6 +15,7 @@ for(const [scene,hotspots] of Object.entries(rooms)){
     assert(left>=0&&top>=0&&right<=1600&&bottom<=900&&left<right&&top<bottom,`${scene}/${h.id} has invalid hit area`);
     assert(x>=left&&x<=right&&y>=top&&y<=bottom,`${scene}/${h.id} visual focus misses hit area`);
     assert(walkX>=90&&walkX<=1510&&walkY>=625&&walkY<=825,`${scene}/${h.id} approach point is outside walkable plane`);
+    if(h.kind==='exit')assert(h.sign,`${scene}/${h.id} exit has no persistent sign`);
   }
   for(let i=0;i<hotspots.length;i++)for(let j=i+1;j<hotspots.length;j++){
     const a=hotspots[i],b=hotspots[j];

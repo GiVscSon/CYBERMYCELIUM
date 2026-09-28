@@ -16,35 +16,35 @@
     ash:[
       {id:'recorder',name:'Полевой прибор',box:[55,115,250,490],focus:[150,280],go:[255,715]},
       {id:'ashRoots',name:'Споры в пепле',box:[650,175,1060,565],focus:[855,380],go:[825,705]},
-      {id:'ashGate',name:'Вход в Нулевой узел',kind:'exit',box:[1235,65,1595,535],focus:[1395,320],go:[1400,710]}
+      {id:'ashGate',name:'Вход в Нулевой узел',kind:'exit',sign:'ВХОД',box:[1235,65,1595,535],focus:[1395,320],go:[1400,710]}
     ],
     atrium:[
-      {id:'sideDoor',name:'Камера сопряжения',kind:'exit',box:[170,240,305,445],focus:[235,355],go:[270,690]},
+      {id:'sideDoor',name:'Камера сопряжения',kind:'exit',sign:'КАМЕРА',box:[170,240,305,445],focus:[235,355],go:[270,690]},
       {id:'archive',name:'Архив эха',box:[310,315,470,575],focus:[375,440],go:[375,690]},
       {id:'register',name:'Реестр основания',box:[725,380,995,590],focus:[850,485],go:[875,690]},
       {id:'terminal',name:'Сигнальный терминал',box:[1090,440,1370,650],focus:[1220,535],go:[1185,695]},
-      {id:'gate',name:'Проход к камере памяти',kind:'exit',box:[1430,260,1595,600],focus:[1510,435],go:[1460,700]},
-      {id:'surface',name:'Выход к Пепельным террасам',kind:'exit',box:[5,610,170,750],focus:[90,670],go:[185,730]}
+      {id:'gate',name:'Проход к камере памяти',kind:'exit',sign:'В СКЛЕП',box:[1430,260,1595,600],focus:[1510,435],go:[1460,700]},
+      {id:'surface',name:'Выход к Пепельным террасам',kind:'exit',sign:'ПОВЕРХНОСТЬ',box:[5,610,170,750],focus:[90,670],go:[185,730]}
     ],
     interface:[
       {id:'membrane',name:'Живая мембрана',box:[340,80,760,525],focus:[555,320],go:[575,695]},
       {id:'workbench',name:'Ложе переходника',box:[815,325,1145,515],focus:[955,405],go:[990,700]},
       {id:'contacts',name:'Медные контакты',box:[1200,40,1435,465],focus:[1300,270],go:[1270,690]},
-      {id:'returnAtrium',name:'Вернуться в Нулевой узел',kind:'exit',box:[30,85,290,555],focus:[155,325],go:[190,705]}
+      {id:'returnAtrium',name:'Вернуться в Нулевой узел',kind:'exit',sign:'НАЗАД',box:[30,85,290,555],focus:[155,325],go:[190,705]}
     ],
     memory:[
       {id:'specimen',name:'Споровый архив',box:[65,205,430,540],focus:[245,375],go:[380,675]},
       {id:'witness',name:'След свидетеля',box:[445,275,640,535],focus:[530,410],go:[580,675]},
       {id:'core',name:'Сердце памяти',box:[680,155,1080,565],focus:[865,385],go:[850,665]},
       {id:'console',name:'Пульт маршрута',box:[1130,370,1430,610],focus:[1270,480],go:[1190,680]},
-      {id:'back',name:'Вернуться в атриум',kind:'exit',box:[1440,255,1595,590],focus:[1510,420],go:[1465,690]}
+      {id:'back',name:'Вернуться в атриум',kind:'exit',sign:'НАЗАД',box:[1440,255,1595,590],focus:[1510,420],go:[1465,690]}
     ],
     seam:[
       {id:'chronicle',name:'Хроника создателей',box:[155,105,540,525],focus:[350,290],go:[450,680]},
       {id:'rift',name:'Шов памяти',box:[690,130,1020,595],focus:[850,420],go:[850,680]},
       {id:'calibration',name:'Пульт сопоставления',box:[1080,330,1375,635],focus:[1245,475],go:[1190,690]},
-      {id:'returnMemory',name:'Вернуться в камеру',kind:'exit',box:[145,550,460,705],focus:[300,620],go:[300,720]},
-      {id:'sealedArch',name:'Запечатанная ветвь',kind:'exit',box:[1380,260,1595,590],focus:[1495,435],go:[1450,690]}
+      {id:'returnMemory',name:'Вернуться в камеру',kind:'exit',sign:'В СКЛЕП',box:[145,550,460,705],focus:[300,620],go:[300,720]},
+      {id:'sealedArch',name:'Запечатанная ветвь',kind:'exit',sign:'АРКА',box:[1380,260,1595,590],focus:[1495,435],go:[1450,690]}
     ]
   };
   function save(){try{localStorage.setItem('cybermycelium-adventure-v1',JSON.stringify({...progress,scene}))}catch{}}
@@ -131,7 +131,7 @@
   canvas.addEventListener('pointerleave',()=>{hover=null});
   canvas.addEventListener('pointerdown',e=>{if(modal.classList.contains('show')||menu.classList.contains('show')||worldMap.classList.contains('show'))return;let p=point(e),h=hit(p);if(h){walk(h.go[0],h.go[1],h);message(h.name,2)}else if(p.y>560){walk(p.x,p.y);message('Проводник идёт...',1.5)}else message('Здесь нет прохода. Выберите участок пола.',2)});
   function drawHero(){let scale=.68+(hero.y-625)/650,bob=hero.walking&&!settings.reduced?Math.sin(elapsed*12)*2:0,x=hero.x,y=hero.y+bob;ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);ctx.fillStyle='#050c0c99';ctx.beginPath();ctx.ellipse(0,3,29,8,0,0,Math.PI*2);ctx.fill();let sprite=assets.guide;if(sprite&&sprite.complete&&sprite.naturalWidth){ctx.scale(hero.facing,1);ctx.drawImage(sprite,-37,-137,74,137);ctx.restore();return}ctx.lineCap='round';ctx.strokeStyle='#0a1112';ctx.lineWidth=8;let stride=hero.walking&&!settings.reduced?Math.sin(elapsed*12)*8:0;ctx.beginPath();ctx.moveTo(-7,-14);ctx.lineTo(-9+stride,0);ctx.moveTo(7,-14);ctx.lineTo(9-stride,0);ctx.stroke();ctx.fillStyle='#0b1618';ctx.beginPath();ctx.moveTo(-16,-64);ctx.lineTo(14,-63);ctx.lineTo(19,-14);ctx.lineTo(-17,-15);ctx.closePath();ctx.fill();ctx.fillStyle='#34423d';ctx.fillRect(-14,-62,5,41);ctx.fillStyle='#111f23';ctx.beginPath();ctx.ellipse(0,-71,12,15,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#6bbbc2';ctx.fillRect(hero.facing>0?2:-10,-75,8,3);ctx.fillStyle='#c99959';ctx.fillRect(-20,-48,4,11);ctx.restore()}
-  function drawHotspots(){for(const h of hotspots[scene]){let x=h.focus?.[0]??(h.box[0]+h.box[2])/2,y=h.focus?.[1]??h.box[3]-32;if(!vision&&!settings.hotspots&&hover!==h){if(h.kind==='exit'){ctx.save();ctx.globalAlpha=.65;ctx.strokeStyle='#dfbf83';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-9,y+7);ctx.lineTo(x+8,y-7);ctx.moveTo(x-1,y-7);ctx.lineTo(x+8,y-7);ctx.lineTo(x+8,y+2);ctx.stroke();ctx.restore()}continue}let pulse=settings.reduced?0:3+Math.sin(elapsed*3)*2;ctx.save();ctx.strokeStyle=vision?'#91d2d1':'#ebc58b';ctx.fillStyle=vision?'#b4eceb':'#f8dfaa';ctx.lineWidth=2;ctx.globalAlpha=hover===h?1:.72;ctx.beginPath();ctx.arc(x,y,13+pulse,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fill();if(hover===h){ctx.font='18px monospace';let measure=ctx.measureText(h.name).width;ctx.fillStyle='#0b181add';ctx.fillRect(x-measure/2-10,y-51,measure+20,30);ctx.fillStyle='#f4e6c8';ctx.fillText(h.name,x-measure/2,y-30)}ctx.restore()}}
+  function drawHotspots(){for(const h of hotspots[scene]){let x=h.focus?.[0]??(h.box[0]+h.box[2])/2,y=h.focus?.[1]??h.box[3]-32;if(!vision&&!settings.hotspots&&hover!==h){if(h.kind==='exit'){ctx.save();ctx.globalAlpha=.78;ctx.strokeStyle='#dfbf83';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-9,y+7);ctx.lineTo(x+8,y-7);ctx.moveTo(x-1,y-7);ctx.lineTo(x+8,y-7);ctx.lineTo(x+8,y+2);ctx.stroke();if(h.sign){ctx.font='13px monospace';const width=ctx.measureText(h.sign).width,left=Math.max(12,Math.min(W-width-28,x-width/2));ctx.fillStyle='#101a16d9';ctx.fillRect(left-8,y+18,width+16,23);ctx.fillStyle='#e5cb94';ctx.fillText(h.sign,left,y+34)}ctx.restore()}continue}let pulse=settings.reduced?0:3+Math.sin(elapsed*3)*2;ctx.save();ctx.strokeStyle=vision?'#91d2d1':'#ebc58b';ctx.fillStyle=vision?'#b4eceb':'#f8dfaa';ctx.lineWidth=2;ctx.globalAlpha=hover===h?1:.72;ctx.beginPath();ctx.arc(x,y,13+pulse,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fill();if(hover===h){ctx.font='18px monospace';let measure=ctx.measureText(h.name).width;ctx.fillStyle='#0b181add';ctx.fillRect(x-measure/2-10,y-51,measure+20,30);ctx.fillStyle='#f4e6c8';ctx.fillText(h.name,x-measure/2,y-30)}ctx.restore()}}
   function render(){ctx.fillStyle='#101819';ctx.fillRect(0,0,W,H);let img=assets[scene];if(img&&img.complete&&img.naturalWidth)ctx.drawImage(img,0,0,W,H);ctx.fillStyle='rgba(4,8,4,.30)';ctx.fillRect(0,0,W,H);if(progress.node&&scene==='memory'){ctx.fillStyle='rgba(224,158,75,.08)';ctx.fillRect(0,0,W,H)}drawHotspots();drawHero();if(!settings.reduced)for(let i=0;i<35;i++){let x=(i*317+elapsed*(i%3+1)*8)%W,y=(i*197+Math.sin(elapsed+i)*25)%H;ctx.fillStyle='#dfcc9c60';ctx.fillRect(x,y,2,2)}}
   function update(t){let dt=Math.min(.04,(t-last)/1000||0);last=t;const speed=({slow:180,normal:285,fast:440})[settings.speed]||285;if(!menu.classList.contains('show')&&!modal.classList.contains('show')&&!worldMap.classList.contains('show')){elapsed+=dt;let mx=Number(keys.has('right'))-Number(keys.has('left')),my=Number(keys.has('down'))-Number(keys.has('up'));if(mx||my){hero.to=null;pending=null;let length=Math.hypot(mx,my);hero.x=Math.max(90,Math.min(1510,hero.x+mx/length*speed*dt));hero.y=Math.max(625,Math.min(825,hero.y+my/length*speed*dt));if(mx)hero.facing=mx>0?1:-1;hero.walking=true}else if(hero.to){let dx=hero.to.x-hero.x,dy=hero.to.y-hero.y,d=Math.hypot(dx,dy),step=speed*dt;if(d<=step+3){hero.x=hero.to.x;hero.y=hero.to.y;hero.to=null;hero.walking=false;if(pending){let h=pending;pending=null;interact(h.id)}}else{hero.x+=dx/d*step;hero.y+=dy/d*step;hero.facing=dx>=0?1:-1;hero.walking=true}}else hero.walking=false;if(noticeUntil&&elapsed>noticeUntil){noticeUntil=0;prompt.textContent=vision?'Связи проявились. Выберите отмеченный объект.':'Нажмите на пол, чтобы идти. Осмотрите предметы.'}}render();requestAnimationFrame(update)}
   function load(name,src){return new Promise(resolve=>{let img=new Image();assets[name]=img;img.onload=resolve;img.onerror=()=>{message('Фон не загрузился. Проверьте соединение.',8);resolve()};img.src=src})}
