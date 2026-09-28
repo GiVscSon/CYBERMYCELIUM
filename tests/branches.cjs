@@ -100,16 +100,21 @@ async function ringAndHeart(){
   await walk(175,385);assert.match(nodes.place.textContent,/ШОВ РАЗРЫВА/);
 }
 async function returnThroughWorld(){
-  const inspect=async(x,y)=>{assert.match(nodes.objective.textContent,/Проверьте|Осмотрите|Послушайте|Сравните/);await walk(x,y);const text=nodes['modal-body'].textContent;assert.match(text,/После решения:/);close();return text};
+  const inspect=async(x,y)=>{assert.match(nodes.objective.textContent,/Проверьте|Осмотрите|Послушайте|Сравните|Сверьте/);await walk(x,y);const text=nodes['modal-body'].textContent;assert.match(text,/После решения:/);close();return text};
   await inspect(850,420);
   await walk(90,590);assert.match(nodes.place.textContent,/СОЛЯНАЯ ВЕТВЬ \/ АРХИВ/);
   const mode=process.env.TEST_HEART||'bounded',saltWords={open:/наслаивается/,seal:/без новых дальних записей/,bounded:/временной меткой/};
   assert.match(await inspect(790,330),saltWords[mode]);
+  assert(progress().saltAfterSeen&&!progress().sporeAfterSeen&&!progress().fieldReport);
+  nodes.journal.click();choose('Соль после решения');assert.match(nodes['modal-body'].textContent,saltWords[mode]);close();
   await walk(1190,315);assert.match(nodes.place.textContent,/ПРОВАЛЫ/);
   await inspect(810,480);
   await walk(1460,620);await walk(1470,640);assert.match(nodes.place.textContent,/ХОР СПОР/);
   const choirWords={open:/общий голос/,seal:/порознь/,bounded:/Оба возраста звучат отдельно/};
   assert.match(await inspect(1150,465),choirWords[mode]);
+  assert(progress().sporeAfterSeen&&!progress().fieldReport);
+  assert.match(nodes.objective.textContent,/Оба последствия записаны/);
+  nodes.journal.click();choose('Споры после решения');assert.match(nodes['modal-body'].textContent,choirWords[mode]);close();
   await walk(135,510);assert.match(nodes.place.textContent,/БАГРОВЫЙ ЛЕС/);
   await inspect(990,365);
   await walk(1510,620);await walk(1490,510);assert.match(nodes.place.textContent,/ШОВ РАЗРЫВА/);
@@ -121,6 +126,12 @@ async function returnThroughWorld(){
   await inspect(555,320);
   await walk(155,325);await walk(90,670);assert.match(nodes.place.textContent,/ПЕПЕЛЬНЫЕ ТЕРРАСЫ/);
   await inspect(855,380);
+  await walk(150,280);choose('ЗАВЕРШИТЬ ПОЛЕВОЙ ОТЧЁТ');
+  assert(progress().fieldReport);assert.match(nodes['modal-body'].textContent,({open:/голоса смешиваются/,seal:/Дальняя связь слаба/,bounded:/временной меткой/})[mode]);close();
+  assert.match(nodes.objective.textContent,/Полевой отчёт сохранён/);
+  nodes.journal.click();assert.match(nodes['modal-body'].textContent,/Полевой отчёт завершён/);
+  choose('Полевой отчёт первого цикла');assert.match(nodes['modal-body'].textContent,/не объясняет, куда ушли хозяева/);close();
+  await walk(150,280);assert.match(nodes['modal-body'].textContent,/Запись сохранена в приборе/);close();
   assert.equal(progress().heartChoice,mode);
 }
 (async()=>{
@@ -131,5 +142,5 @@ async function returnThroughWorld(){
   await ringAndHeart();
   await returnThroughWorld();
   nodes['map-button'].click();assert(!mapNodes.find(x=>x.dataset.scene==='center').classList.contains('locked'));nodes['map-close'].click();
-  console.log(`PASS: ${process.env.TEST_BRANCH_ORDER||'salt'} first, two physical branches, reversible ecology, ${process.env.TEST_HEART||'bounded'} ending and return to surface`);
+  console.log(`PASS: ${process.env.TEST_BRANCH_ORDER||'salt'} first, both branches, ${process.env.TEST_HEART||'bounded'} ending, return and field report`);
 })().catch(e=>{console.error(e);process.exitCode=1});
