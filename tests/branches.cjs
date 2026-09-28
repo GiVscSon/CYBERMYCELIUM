@@ -92,9 +92,36 @@ async function ringAndHeart(){
   const mode=process.env.TEST_HEART||'bounded',label={bounded:'УСТАНОВИТЬ ГРАНИЦЫ',open:'ОТКРЫТЬ ВСЕ ВЕТВИ',seal:'СОХРАНИТЬ ПЕЧАТЬ'}[mode];assert(label);
   choose(label);assert.equal(progress().heartChoice,mode);assert.match(nodes['modal-body'].textContent,/прежних хозяев|грибница|Грибница/);close();
   nodes.journal.click();assert.match(nodes['modal-body'].textContent,/Найдено \d+ из \d+/);const intent=nodes['modal-choices'].children.find(x=>x.textContent==='Ожидание и инструмент');assert(intent);intent.click();assert.match(nodes['modal-body'].textContent,/намеренно направила/);close();
+  await walk(840,325);assert.match(nodes['modal-body'].textContent,/После решения:/);close();
   await walk(85,520);assert.match(nodes.place.textContent,/СРАСТАНИЕ/);
+  await walk(540,540);assert.match(nodes['modal-body'].textContent,/После решения:/);close();
   await walk(230,495);assert.match(nodes.place.textContent,/ТРЕТИЙ НОСИТЕЛЬ/);
+  await walk(840,340);assert.match(nodes['modal-body'].textContent,/После решения:/);close();
   await walk(175,385);assert.match(nodes.place.textContent,/ШОВ РАЗРЫВА/);
+}
+async function returnThroughWorld(){
+  const inspect=async(x,y)=>{assert.match(nodes.objective.textContent,/Проверьте|Осмотрите|Послушайте|Сравните/);await walk(x,y);const text=nodes['modal-body'].textContent;assert.match(text,/После решения:/);close();return text};
+  await inspect(850,420);
+  await walk(90,590);assert.match(nodes.place.textContent,/СОЛЯНАЯ ВЕТВЬ \/ АРХИВ/);
+  const mode=process.env.TEST_HEART||'bounded',saltWords={open:/наслаивается/,seal:/без новых дальних записей/,bounded:/временной меткой/};
+  assert.match(await inspect(790,330),saltWords[mode]);
+  await walk(1190,315);assert.match(nodes.place.textContent,/ПРОВАЛЫ/);
+  await inspect(810,480);
+  await walk(1460,620);await walk(1470,640);assert.match(nodes.place.textContent,/ХОР СПОР/);
+  const choirWords={open:/общий голос/,seal:/порознь/,bounded:/Оба возраста звучат отдельно/};
+  assert.match(await inspect(1150,465),choirWords[mode]);
+  await walk(135,510);assert.match(nodes.place.textContent,/БАГРОВЫЙ ЛЕС/);
+  await inspect(990,365);
+  await walk(1510,620);await walk(1490,510);assert.match(nodes.place.textContent,/ШОВ РАЗРЫВА/);
+  await walk(380,600);assert.match(nodes.place.textContent,/СКЛЕП ПАМЯТИ/);
+  await inspect(865,385);
+  await walk(1510,420);assert.match(nodes.place.textContent,/НУЛЕВОЙ УЗЕЛ/);
+  await inspect(850,485);
+  await walk(225,430);assert.match(nodes.place.textContent,/КАМЕРА СОПРЯЖЕНИЯ/);
+  await inspect(555,320);
+  await walk(155,325);await walk(90,670);assert.match(nodes.place.textContent,/ПЕПЕЛЬНЫЕ ТЕРРАСЫ/);
+  await inspect(855,380);
+  assert.equal(progress().heartChoice,mode);
 }
 (async()=>{
   await tick();nodes.continue.click();assert(!nodes.modal.classList.contains('show'));
@@ -102,6 +129,7 @@ async function ringAndHeart(){
   await walk(175,385);assert.match(nodes.place.textContent,/ШОВ РАЗРЫВА/);
   if(process.env.TEST_BRANCH_ORDER==='spores'){await spores();await salt()}else{await salt();await spores()}
   await ringAndHeart();
+  await returnThroughWorld();
   nodes['map-button'].click();assert(!mapNodes.find(x=>x.dataset.scene==='center').classList.contains('locked'));nodes['map-close'].click();
-  console.log(`PASS: ${process.env.TEST_BRANCH_ORDER||'salt'} first, two physical branches, reversible ecology, confluence and ${process.env.TEST_HEART||'bounded'} ending`);
+  console.log(`PASS: ${process.env.TEST_BRANCH_ORDER||'salt'} first, two physical branches, reversible ecology, ${process.env.TEST_HEART||'bounded'} ending and return to surface`);
 })().catch(e=>{console.error(e);process.exitCode=1});
