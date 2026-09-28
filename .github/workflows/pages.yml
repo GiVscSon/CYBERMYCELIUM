@@ -19,6 +19,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+      - name: Verify playable world
+        run: |
+          node --check game.js
+          node tests/smoke.cjs
+          TEST_ENDING=seal node tests/smoke.cjs
+          TEST_LEGACY=1 node tests/smoke.cjs
+          node tests/branches.cjs
+          TEST_BRANCH_ORDER=spores TEST_HEART=open node tests/branches.cjs
+          TEST_HEART=seal node tests/branches.cjs
+          node tests/spatial.cjs
+          node tests/navigation.cjs
+          node tests/motion.cjs
+          node tests/world.cjs
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site

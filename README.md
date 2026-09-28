@@ -18,7 +18,7 @@
 
 ## Запуск и проверка
 
-Откройте `index.html` через локальный HTTP-сервер, например `python3 -m http.server 8000` из корня проекта. Сборка и внешние зависимости не нужны. Проверки: `node tests/smoke.cjs`, `node tests/branches.cjs`, `node tests/spatial.cjs`, `node tests/world.cjs`.
+Откройте `index.html` через локальный HTTP-сервер, например `python3 -m http.server 8000` из корня проекта. Сборка и внешние зависимости не нужны. Проверки: `node tests/smoke.cjs`, `node tests/branches.cjs`, `node tests/spatial.cjs`, `node tests/navigation.cjs`, `node tests/motion.cjs`, `node tests/world.cjs`.
 
 Шесть ранних фонов лежат в `assets/*-cyber.webp`; новые B0, B1, C0, C1, R и H имеют самостоятельные биологические фоны в `assets/*.webp`. Уменьшенные версии 14 иллюстраций находятся в `assets/atlas/01.webp` — `14.webp`. Развёртывание GitHub Pages описано в `.github/workflows/pages.yml`.
 
