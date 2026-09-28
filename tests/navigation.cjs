@@ -7,10 +7,19 @@ const code=fs.readFileSync(path.join(root,'game.js'),'utf8');
 const html=fs.readFileSync(path.join(root,'design/world-map.html'),'utf8');
 const rooms=vm.runInNewContext('('+code.match(/const hotspots=([\s\S]*?);\s*function save\(/)[1]+')');
 const arrivals=vm.runInNewContext('('+code.match(/const arrivals=(\{[^\n]+\});\s*function nextScene/)[1]+')');
+const sceneRoutes=vm.runInNewContext('('+code.match(/const sceneRoutes=(\{[^\n]+\});\s*function routeBlocker/)[1]+')');
 const regions=vm.runInNewContext('('+html.match(/const regions=(\[[\s\S]*?\]);\s*const links=/)[1]+')');
 const links=vm.runInNewContext('('+html.match(/const links=(\[[\s\S]*?\]);\s*const byId=/)[1]+')');
 const sceneNames=Object.keys(rooms),sceneSet=new Set(sceneNames);
 assert.deepEqual(new Set(Object.keys(arrivals)),sceneSet,'the arrival graph covers every playable scene');
+assert.deepEqual(new Set(Object.keys(sceneRoutes)),sceneSet,'the live route panel covers every playable scene');
+for(const [from,routes] of Object.entries(sceneRoutes))for(const [id,to] of routes){
+  const h=rooms[from].find(h=>h.id===id);
+  assert(h,`route ${from}:${id} has an actual object in the scene`);
+  assert(h.kind==='exit'||from==='memory'&&id==='core',`route ${from}:${id} is a visible exit or the playable portal`);
+  assert(arrivals[to]?.[from],`route ${from}:${id} → ${to} has a corresponding physical arrival`);
+}
+for(const [to,sources] of Object.entries(arrivals))for(const from of Object.keys(sources))assert(sceneRoutes[from].some(([,dest])=>dest===to),`physical passage ${from} → ${to} appears in the live map`);
 const pair=(a,b)=>[a,b].sort().join('::'),edges=new Set();
 for(const [to,sources] of Object.entries(arrivals))for(const [from,point] of Object.entries(sources)){
   assert(sceneSet.has(from),`unknown arrival source ${from}`);
@@ -23,4 +32,4 @@ for(const [a,b] of links)assert(edges.has(pair(mapScene[a],mapScene[b])),`map li
 const connected=start=>{const seen=new Set([start]),queue=[start];for(const id of queue)for(const edge of edges){const [a,b]=edge.split('::'),next=a===id?b:b===id?a:null;if(next&&!seen.has(next)){seen.add(next);queue.push(next)}}return seen};
 for(const start of ['ash','b0','c0'])assert.equal(connected(start).size,sceneNames.length,`${start} reaches every playable scene`);
 assert.equal(links.length,12,'the world map keeps all twelve major physical connections');
-console.log(`PASS: ${sceneNames.length} playable scenes connected; all ${links.length} world-map links correspond to walkable, marked passages`);
+console.log(`PASS: ${sceneNames.length} playable scenes connected; ${Object.values(sceneRoutes).flat().length} live route entries match physical arrivals`);

@@ -13,6 +13,7 @@ class Element {
   setAttribute(){}
   replaceChildren(){this.children=[]}
   append(...x){this.children.push(...x)}
+  querySelector(s){return s==='.map-status'?this.children.find(x=>x.className==='map-status'):null}
   getBoundingClientRect(){return {left:0,top:0,width:1600,height:900}}
 }
 const nodes=Object.fromEntries([...html.matchAll(/id="([^"]+)"/g)].map(m=>[m[1],new Element()]));
@@ -106,6 +107,7 @@ async function returnThroughWorld(){
   const mode=process.env.TEST_HEART||'bounded',saltWords={open:/наслаивается/,seal:/без новых дальних записей/,bounded:/временной меткой/};
   assert.match(await inspect(790,330),saltWords[mode]);
   assert(progress().saltAfterSeen&&!progress().sporeAfterSeen&&!progress().fieldReport);
+  nodes['map-button'].click();assert.match(nodes['map-report'].textContent,/резонатор Хора C1/);assert(!nodes['map-report'].textContent.includes('соляной керн B1'));assert.match(nodes['map-exits'].children.find(x=>x.children[0].textContent.includes('Влажный мост')).children[1].textContent,/Проход открыт/);nodes['map-close'].click();
   nodes.journal.click();choose('Соль после решения');assert.match(nodes['modal-body'].textContent,saltWords[mode]);close();
   await walk(1190,315);assert.match(nodes.place.textContent,/ПРОВАЛЫ/);
   await inspect(810,480);
@@ -113,6 +115,7 @@ async function returnThroughWorld(){
   const choirWords={open:/общий голос/,seal:/порознь/,bounded:/Оба возраста звучат отдельно/};
   assert.match(await inspect(1150,465),choirWords[mode]);
   assert(progress().sporeAfterSeen&&!progress().fieldReport);
+  nodes['map-button'].click();assert.match(nodes['map-report'].textContent,/Вернитесь к полевому прибору A0/);nodes['map-close'].click();
   assert.match(nodes.objective.textContent,/Оба последствия записаны/);
   nodes.journal.click();choose('Споры после решения');assert.match(nodes['modal-body'].textContent,choirWords[mode]);close();
   await walk(135,510);assert.match(nodes.place.textContent,/БАГРОВЫЙ ЛЕС/);
@@ -129,6 +132,7 @@ async function returnThroughWorld(){
   await walk(150,280);choose('ЗАВЕРШИТЬ ПОЛЕВОЙ ОТЧЁТ');
   assert(progress().fieldReport);assert.match(nodes['modal-body'].textContent,({open:/голоса смешиваются/,seal:/Дальняя связь слаба/,bounded:/временной меткой/})[mode]);close();
   assert.match(nodes.objective.textContent,/Полевой отчёт сохранён/);
+  nodes['map-button'].click();assert.match(nodes['map-report'].textContent,/Полевой отчёт завершён/);assert.equal(mapNodes.filter(x=>x.querySelector('.map-status').textContent==='ПОСЕЩЕНО').length,11);nodes['map-close'].click();
   nodes.journal.click();assert.match(nodes['modal-body'].textContent,/Полевой отчёт завершён/);
   choose('Полевой отчёт первого цикла');assert.match(nodes['modal-body'].textContent,/не объясняет, куда ушли хозяева/);close();
   await walk(150,280);assert.match(nodes['modal-body'].textContent,/Запись сохранена в приборе/);close();
