@@ -24,4 +24,13 @@ for(const [scene,hotspots] of Object.entries(rooms)){
   }
   assert(hotspots.some(h=>h.kind==='exit'),`${scene} has no visible exit`);
 }
+const seamReturn=rooms.seam.find(h=>h.id==='returnMemory');
+assert(seamReturn, 'seam return passage missing');
+assert(seamReturn.box[0]>=180 && seamReturn.box[1]>=520 && seamReturn.box[2]<=670 && seamReturn.box[3]<=690,
+  'seam return passage must hit the visible stairs below the clock');
+assert(seamReturn.focus[0]<=seamReturn.box[2] && seamReturn.focus[1]>=seamReturn.box[1],
+  'seam return marker must sit on the stair hit area');
+const seamHit=(x,y)=>rooms.seam.find(h=>x>=h.box[0]&&x<=h.box[2]&&y>=h.box[1]&&y<=h.box[3]);
+assert.equal(seamHit(380,600)?.id,'returnMemory','visible stair point should activate return passage');
+assert.notEqual(seamHit(90,630)?.id,'returnMemory','foreground at the left edge must not activate return passage');
 console.log(`PASS: ${count} object and exit areas in ${Object.keys(rooms).length} scenes; no overlap, all focuses and approaches valid`);

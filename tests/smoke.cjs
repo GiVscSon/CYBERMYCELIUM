@@ -6,7 +6,7 @@ const root = path.join(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const js = fs.readFileSync(path.join(root, 'game.js'), 'utf8');
 for (const id of ['scene','detail','modal-visual','loading','place','objective','prompt','modal','modal-tag','modal-title','modal-body','modal-choices','vision','journal','close','menu','menu-button','continue','settings-button','new-game','move-speed','text-size','always-hotspots','reduced-motion','world-map','map-button','map-close']) assert.match(html, new RegExp(`id="${id}"`));
-for (const file of ['ash-terraces.webp','coupling-chamber.webp','outer.webp','vault.webp','fracture.webp','mage.webp']) {const data=fs.readFileSync(path.join(root,'assets',file));assert.equal(data.toString('ascii',0,4),'RIFF');assert.equal(data.toString('ascii',8,12),'WEBP')}
+for (const file of ['ash-terraces-cyber.webp','coupling-chamber-cyber.webp','outer-cyber.webp','vault-cyber.webp','fracture-cyber.webp','third-carrier-cyber.webp','mage.webp']) {const data=fs.readFileSync(path.join(root,'assets',file));assert.equal(data.toString('ascii',0,4),'RIFF');assert.equal(data.toString('ascii',8,12),'WEBP')}
 class Element {constructor(){this.textContent='';this.handlers={};this.children=[];this.style={};this.classList={set:new Set(),add(x){this.set.add(x)},remove(x){this.set.delete(x)},contains(x){return this.set.has(x)},toggle(x,v){if(v===undefined)v=!this.set.has(x);v?this.set.add(x):this.set.delete(x)}}}addEventListener(n,fn){this.handlers[n]=fn}click(){this.handlers.click?.({})}focus(){}replaceChildren(){this.children=[]}append(x){this.children.push(x)}getBoundingClientRect(){return {left:0,top:0,width:1600,height:900}}}
 const nodes=Object.fromEntries([...html.matchAll(/id="([^"]+)"/g)].map(m=>[m[1],new Element()]));
 const noop=()=>{};const ctx=new Proxy({}, {get(target,key){if(key==='measureText')return s=>({width:s.length*10});return target[key]||noop},set(target,key,val){target[key]=val;return true}});
@@ -14,7 +14,7 @@ nodes.scene.getContext=()=>ctx;
 nodes.detail.getContext=()=>ctx;
 let raf=null, clock=0;const store={};
 if(process.env.TEST_LEGACY)store['cybermycelium-adventure-v1']=JSON.stringify({scene:'seam',ending:'listen',chronicle:true,echo:true,seamCalibrated:true});
-const mapNodes=['ash','atrium','interface','memory','seam','center'].map(scene=>Object.assign(new Element(),{dataset:{scene}}));
+const mapNodes=['ash','atrium','interface','memory','seam','carrier','center'].map(scene=>Object.assign(new Element(),{dataset:{scene}}));
 const windowHandlers={};const sandbox={document:{body:new Element(),querySelector:s=>nodes[s.slice(1)],querySelectorAll:s=>s==='.map-node'?mapNodes:[],createElement:()=>new Element()},window:{addEventListener:(n,fn)=>{windowHandlers[n]=fn}},localStorage:{getItem:k=>store[k],setItem:(k,v)=>store[k]=v},Image:class{set src(v){this.complete=true;this.naturalWidth=1600;this.onload?.()}},requestAnimationFrame:f=>{raf=f},Math,Promise,console};
 vm.runInNewContext(js,sandbox,{filename:'game.js'});
 const tick=async(n=1)=>{await Promise.resolve();for(let i=0;i<n;i++){clock+=40;raf?.(clock)}};
@@ -24,7 +24,7 @@ const close=()=>nodes.close.click();
 const choose=label=>{const button=nodes['modal-choices'].children.find(x=>x.textContent===label);assert(button,`missing action: ${label}`);button.click()};
 (async()=>{
  await tick();assert(nodes.menu.classList.contains('show'));
- if(process.env.TEST_LEGACY){nodes.continue.click();assert.match(nodes.place.textContent,/ШОВ РАЗРЫВА/);assert(!nodes.modal.classList.contains('show'));await walk(250,600);assert.match(nodes.place.textContent,/СКЛЕП ПАМЯТИ/);await walk(1490,430);assert.match(nodes.place.textContent,/НУЛЕВОЙ УЗЕЛ/);await walk(120,700);assert.match(nodes.place.textContent,/ПЕПЕЛЬНЫЕ ТЕРРАСЫ/);await walk(1350,350);assert.match(nodes.place.textContent,/НУЛЕВОЙ УЗЕЛ/);assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).ashPassage,true);console.log('PASS: legacy save resumes at the old scene and retains a return path');return}
+ if(process.env.TEST_LEGACY){nodes.continue.click();assert.match(nodes.place.textContent,/ШОВ РАЗРЫВА/);assert(!nodes.modal.classList.contains('show'));await walk(380,600);assert.match(nodes.place.textContent,/СКЛЕП ПАМЯТИ/);await walk(1490,430);assert.match(nodes.place.textContent,/НУЛЕВОЙ УЗЕЛ/);await walk(120,700);assert.match(nodes.place.textContent,/ПЕПЕЛЬНЫЕ ТЕРРАСЫ/);await walk(1350,350);assert.match(nodes.place.textContent,/НУЛЕВОЙ УЗЕЛ/);assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).ashPassage,true);console.log('PASS: legacy save resumes at the old scene and retains a return path');return}
  nodes['settings-button'].click();nodes['move-speed'].value='fast';nodes['move-speed'].handlers.change({target:nodes['move-speed']});nodes['text-size'].value='large';nodes['text-size'].handlers.change({target:nodes['text-size']});nodes['always-hotspots'].checked=true;nodes['always-hotspots'].handlers.change({target:nodes['always-hotspots']});assert.equal(JSON.parse(store['cybermycelium-settings-v1']).speed,'fast');assert(sandbox.document.body.classList.contains('large-text'));
  nodes['settings-back'].click();nodes.continue.click();assert.equal(nodes['modal-title'].textContent,'Пепельные террасы');assert(!nodes.modal.classList.contains('inspect'));close();
  nodes['menu-button'].click();assert(nodes.menu.classList.contains('show'));windowHandlers.keydown({key:'Escape',preventDefault(){}});assert(!nodes.menu.classList.contains('show'));
@@ -33,6 +33,7 @@ const choose=label=>{const button=nodes['modal-choices'].children.find(x=>x.text
  await walk(1350,350);assert.equal(nodes['modal-title'].textContent,'Нить без направления');close();
  await walk(120,300);assert.equal(store['cybermycelium-adventure-v1'],undefined);choose('СЧИТАТЬ ЖУРНАЛ');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).ashSignal,true);close();
  await walk(820,380);choose('СЧИТАТЬ СПОРЫ');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).ashSpores,true);close();
+ await walk(820,380);assert.equal(nodes['modal-title'].textContent,'Контакт через споры');choose('ПРИСЛУШАТЬСЯ');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).sporeVoice,true);assert.match(nodes['modal-body'].textContent,/нервная система/);close();
  await walk(120,300);assert.equal(nodes['modal-title'].textContent,'Сопоставить следы');nodes['modal-choices'].children.find(x=>x.textContent==='СОПОСТАВИТЬ РИТМЫ').click();assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).ashCompared,true);close();
  await walk(1350,350);assert.match(nodes.place.textContent,/НУЛЕВОЙ УЗЕЛ/);
  await walk(1200,600);assert.equal(nodes['modal-title'].textContent,'Нечитаемый интерфейс');assert(nodes.modal.classList.contains('inspect'));close();
@@ -52,16 +53,26 @@ const choose=label=>{const button=nodes['modal-choices'].children.find(x=>x.text
  await walk(550,450);choose('ЗАПОМНИТЬ ГОЛОС');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).witness,true);close();
  await walk(250,400);choose('СНЯТЬ ОТПЕЧАТОК');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).specimen,true);close();
  await walk(1200,480);choose('НАПРАВИТЬ ИМПУЛЬС');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).signal,true);close();
- await walk(800,400);assert.equal(nodes['modal-title'].textContent,'Внешний ответ');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).node,true);
+ await walk(800,400);assert.equal(nodes['modal-title'].textContent,'Прямое сопряжение');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).node,false);choose('ПОДКЛЮЧИТЬ ПЕРЕХОДНИК');assert.equal(nodes['modal-title'].textContent,'Внешний ответ');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).node,true);
  const ending=process.env.TEST_ENDING==='seal'?'seal':'listen';nodes['modal-choices'].children.find(x=>x.textContent===(ending==='seal'?'ИЗОЛИРОВАТЬ':'СЛУШАТЬ ОТВЕТ')).click();assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).ending,ending);
  nodes['modal-choices'].children.find(x=>x.textContent==='ИДТИ К ШВУ РАЗРЫВА').click();assert.match(nodes.place.textContent,/ШОВ РАЗРЫВА/);
- nodes['map-button'].click();assert(mapNodes[4].classList.contains('current'));assert(mapNodes[5].classList.contains('locked'));nodes['map-close'].click();
+ nodes['map-button'].click();assert(mapNodes[4].classList.contains('current'));assert(mapNodes[5].classList.contains('locked'));assert(mapNodes[6].classList.contains('locked'));nodes['map-close'].click();
  await walk(300,300);choose('СНЯТЬ ОТТИСК');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).chronicle,true);close();
  await walk(750,350);choose('ПРОСЛУШАТЬ СЛЕД');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).echo,true);close();
  await walk(1200,450);assert.equal(nodes['modal-title'].textContent,'Найдите противоречие');nodes['modal-choices'].children.find(x=>x.textContent==='ПОРЯДОК СОБЫТИЙ').click();assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).seamCalibrated,true);close();
- await walk(1500,400);choose('ПРИОТКРЫТЬ АРКУ');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).archSeen,true);close();
- nodes.journal.click();assert(!nodes.modal.classList.contains('inspect'));assert.match(nodes['modal-body'].textContent,/Найдено 15 из 15/);nodes['modal-choices'].children.find(x=>x.textContent==='Прибытие мага').click();assert.match(nodes['modal-body'].textContent,/другой планеты/);nodes['modal-choices'].children.find(x=>x.textContent==='К СПИСКУ').click();nodes['modal-choices'].children.find(x=>x.textContent==='Переходник').click();assert.match(nodes['modal-body'].textContent,/биокерамический/);nodes['modal-choices'].children.find(x=>x.textContent==='К СПИСКУ').click();nodes['modal-choices'].children.find(x=>x.textContent==='Разрыв').click();assert.match(nodes['modal-body'].textContent,/несовместимые версии/);close();
+ await walk(1500,400);choose('ВОЙТИ К НОСИТЕЛЮ');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).archSeen,true);assert.match(nodes.place.textContent,/ТРЕТИЙ НОСИТЕЛЬ/);
+ nodes['map-button'].click();assert(mapNodes[5].classList.contains('current'));nodes['map-close'].click();
+ await walk(840,340);assert.equal(nodes['modal-title'].textContent,'Недостаточно опор');close();
+ await walk(550,525);choose('СЧИТАТЬ ПЕЧАТЬ');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).carrierSeal,true);close();
+ await walk(1160,490);choose('ПОДАТЬ ПРЯМОЙ ИМПУЛЬС');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).carrierRhythm,false);close();
+ await walk(1160,490);choose('СВЕРИТЬ С ПРИБОРОМ');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).carrierRhythm,true);close();
+ await walk(840,340);choose('Я СОЗДАЛ ЭТУ СЕТЬ');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).carrierRead,false);close();
+ await walk(840,340);choose('СИГНАЛ СВЯЗАН С МОИМ');assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).carrierRead,true);close();
+ await walk(1460,455);assert.equal(nodes['modal-title'].textContent,'Глубина закрыта');assert.match(nodes['modal-body'].textContent,/Соляного архива/);close();
+ await walk(175,385);assert.match(nodes.place.textContent,/ШОВ РАЗРЫВА/);
+ await walk(1495,435);assert.match(nodes.place.textContent,/ТРЕТИЙ НОСИТЕЛЬ/);
+ nodes.journal.click();assert(!nodes.modal.classList.contains('inspect'));assert.match(nodes['modal-body'].textContent,/Найдено 19 из 19/);nodes['modal-choices'].children.find(x=>x.textContent==='Прибытие мага').click();assert.match(nodes['modal-body'].textContent,/другой планеты/);nodes['modal-choices'].children.find(x=>x.textContent==='К СПИСКУ').click();nodes['modal-choices'].children.find(x=>x.textContent==='Первый разговор').click();assert.match(nodes['modal-body'].textContent,/через споры/);nodes['modal-choices'].children.find(x=>x.textContent==='К СПИСКУ').click();nodes['modal-choices'].children.find(x=>x.textContent==='Переходник').click();assert.match(nodes['modal-body'].textContent,/биокерамический/);nodes['modal-choices'].children.find(x=>x.textContent==='К СПИСКУ').click();nodes['modal-choices'].children.find(x=>x.textContent==='След Третьего носителя').click();assert.match(nodes['modal-body'].textContent,/независимой проверки/);close();
  nodes.vision.click();assert(nodes.vision.classList.contains('active'));
  nodes['menu-button'].click();nodes['new-game'].click();assert.equal(nodes['modal-title'].textContent,'Начать заново?');nodes['modal-choices'].children.find(x=>x.textContent==='СБРОСИТЬ ПРОХОЖДЕНИЕ').click();assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).memory,false);assert.equal(JSON.parse(store['cybermycelium-adventure-v1']).scene,'ash');assert.equal(JSON.parse(store['cybermycelium-settings-v1']).speed,'fast');
- console.log('PASS: dark assets, alien mage, map, five scenes, coupling room, both later puzzles, journal and reset');
+ console.log('PASS: cyberfungal assets, alien mage, map, six scenes, coupling room, third carrier, both branches, journal and reset');
 })().catch(e=>{console.error(e);process.exitCode=1});
