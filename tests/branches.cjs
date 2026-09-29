@@ -23,7 +23,8 @@ const tabs=['contour','protocols','echo'].map(pulseTab=>Object.assign(new Elemen
 const mapNodes=['ash','atrium','interface','memory','seam','carrier','b0','b1','c0','c1','r','center'].map(scene=>Object.assign(new Element(),{dataset:{scene}}));
 let raf,clock=0;
 const store={'cybermycelium-adventure-v1':JSON.stringify({scene:'carrier',ashSignal:true,ashSpores:true,sporeVoice:true,ashCompared:true,adapter:true,relay:true,routePowered:true,ending:'seal',node:true,signal:true,seamCalibrated:true,archSeen:true,carrierSeal:true,carrierRhythm:true,carrierRead:true})};
-const sandbox={document:{body:new Element(),querySelector:s=>s.startsWith('[data-pulse-tab')?tabs[0]:nodes[s.slice(1)],querySelectorAll:s=>s==='.map-node'?mapNodes:s==='[data-pulse-tab]'?tabs:[],createElement:()=>new Element()},window:{addEventListener(){}},localStorage:{getItem:k=>store[k],setItem:(k,v)=>store[k]=v},Image:class{set src(v){this.complete=true;this.naturalWidth=1600;this.onload?.()}},requestAnimationFrame:f=>raf=f,Math,Promise,console};
+if(process.env.TEST_IMPORT)store['cybermycelium-adventure-v1']=fs.readFileSync(process.env.TEST_IMPORT,'utf8');
+const sandbox={document:{body:new Element(),querySelector:s=>s.startsWith('[data-pulse-tab')?tabs[0]:nodes[s.slice(1)],querySelectorAll:s=>s==='.map-node'?mapNodes:s==='[data-pulse-tab]'?tabs:[],createElement:()=>new Element()},window:{addEventListener(){}},localStorage:{getItem:k=>store[k],setItem:(k,v)=>store[k]=v},Image:class{set src(v){this.complete=true;this.naturalWidth=1600;this.onload?.()}},requestAnimationFrame:f=>raf=f,Math,Promise,console,setTimeout,clearTimeout};
 vm.runInNewContext(js,sandbox,{filename:'game.js'});
 const progress=()=>JSON.parse(store['cybermycelium-adventure-v1']);
 const tick=async(n=1)=>{await Promise.resolve();for(let i=0;i<n;i++){clock+=40;raf?.(clock)}};
@@ -146,5 +147,6 @@ async function returnThroughWorld(){
   await ringAndHeart();
   await returnThroughWorld();
   nodes['map-button'].click();assert(!mapNodes.find(x=>x.dataset.scene==='center').classList.contains('locked'));nodes['map-close'].click();
+  if(process.env.TEST_EXPORT)fs.writeFileSync(process.env.TEST_EXPORT,store['cybermycelium-adventure-v1']);
   console.log(`PASS: ${process.env.TEST_BRANCH_ORDER||'salt'} first, both branches, ${process.env.TEST_HEART||'bounded'} ending, return and field report`);
 })().catch(e=>{console.error(e);process.exitCode=1});
