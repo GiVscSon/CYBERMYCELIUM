@@ -1,0 +1,22 @@
+{
+  "date": "2026-09-29",
+  "scope": "CYBERMYCELIUM first cycle: 12 scenes, 72 interactive areas",
+  "conditions": {
+    "logic": "Node.js VM and filesystem checks",
+    "browser": "Chromium 138.0.7204.0, Linux headless, 1440x900",
+    "touch": "Chromium emulation at 844x390 and 390x844"
+  },
+  "checks": [
+    {"id":"R1","claim":"Malformed saves recover without startup failure or automatic overwrite","status":"confirmed_in_conditions","evidence":"tests/runtime.cjs: null, array, string, number, invalid JSON; real Chromium baseline and after fix"},
+    {"id":"R2","claim":"Failed writes are visible, retriable and preserve the previous save","status":"confirmed_in_conditions","evidence":"tests/runtime.cjs; tests/browser.cjs quota injection and retry"},
+    {"id":"R3","claim":"Action methods persist after reload and reset with a new game","status":"confirmed_in_conditions","evidence":"tests/runtime.cjs; tests/browser.cjs two checkpoints"},
+    {"id":"R4","claim":"Required image errors or timeouts block play and retry the missing image","status":"confirmed_in_conditions","evidence":"tests/runtime.cjs image error and timer injection; tests/browser.cjs request abort and retry"},
+    {"id":"R5","claim":"Six new-game variants reach the field report through real saved prologue state","status":"confirmed_in_conditions","evidence":"tests/full-cycle.cjs: 5 stats plus base, 2 A2 outcomes, 2 branch orders, 3 heart choices, 12 visited scenes"},
+    {"id":"R6","claim":"Chromium can complete a clean cycle with reloads and return to A0","status":"confirmed_in_conditions","evidence":"tests/browser.cjs: 6 reloads, bounded ending, field report, no page errors or unexpected request failures"},
+    {"id":"R7","claim":"Keyboard focus, Russian shortcut, HUD Enter and emulated touch are operable","status":"confirmed_in_conditions","evidence":"tests/browser.cjs and inspected 1440x900 heart/report frames"},
+    {"id":"R8","claim":"Legacy save and physical routes remain connected","status":"confirmed_in_conditions","evidence":"TEST_LEGACY=1 node tests/smoke.cjs; tests/spatial.cjs, navigation.cjs, motion.cjs, world.cjs"},
+    {"id":"R9","claim":"Safari, Firefox and physical Android behave the same","status":"not_checked","limit":"Only Chromium and emulated touch/viewport were exercised"}
+  ],
+  "browserResult": {"saveSeeded":false,"reloads":6,"scenesVisited":12,"ending":"bounded","fieldReport":true,"pageErrors":0},
+  "deploymentGate": "GitHub Actions verify and browser jobs must succeed before Pages deploy"
+}
